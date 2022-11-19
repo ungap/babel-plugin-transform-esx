@@ -118,4 +118,17 @@ test("spread props are represented as a runtime prop with empty name", () => {
   );
 });
 
+test("fragments", () => {
+  const frag = (
+    <>
+      <p />
+      <div />
+    </>
+  );
+
+  assert.strictEqual(frag.value.type, ESXToken.FRAGMENT_TYPE);
+  assert.strictEqual(frag.value.properties, null);
+  assert.strictEqual(frag.value.children.length, 2);
+});
+
 test.finish();

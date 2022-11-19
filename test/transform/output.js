@@ -23,7 +23,7 @@ const div2 = ESXToken.template(
 function MyComponent(...args) {
   return ESXToken.template(
     _templateReference3,
-    ESXToken.factory(
+    ESXToken.fragment(
       ESXToken.create(ESXToken.RUNTIME_TYPE, "A"),
       ESXToken.create(ESXToken.STATIC_TYPE, ","),
       ESXToken.create(ESXToken.RUNTIME_TYPE, "B")

@@ -57,7 +57,7 @@ export default function ({ template, types: t }) {
 
   function transformFragment(path) {
     return t.callExpression(
-      t.memberExpression(t.identifier("ESXToken"), t.identifier("factory")),
+      t.memberExpression(t.identifier("ESXToken"), t.identifier("fragment")),
       path.get("children").map(transformChild).filter(Boolean)
     );
   }
