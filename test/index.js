@@ -99,4 +99,11 @@ test("newlines in children are collapsed", () => {
   );
 });
 
+test("supports xml namespaces", () => {
+  const elem = <xml:svg xmlns:xlink="http://www.w3.org/1999/xlink" />;
+
+  assert.strictEqual(elem.value.value, "xml:svg");
+  assert.strictEqual(elem.value.properties.value[0].name, "xmlns:xlink");
+});
+
 test.finish();

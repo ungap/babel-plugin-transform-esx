@@ -30,17 +30,14 @@ export default function ({ template, types: t }) {
   function transformElement(path) {
     /** @type {import("@babel/types").JSXElement} */
     const node = path.node;
-
     const jsxElementName = node.openingElement.name;
-    if (t.isJSXNamespacedName(jsxElementName)) {
-      throw path.buildCodeFrameError(
-        "Namespaced JSX elements are not supported."
-      );
-    }
 
     let factory;
     let element;
-    if (t.react.isCompatTag(jsxElementName.name)) {
+    if (
+      t.isJSXNamespacedName(jsxElementName) ||
+      (t.isJSXIdentifier(jsxElementName) && /^[a-z]/.test(jsxElementName.name))
+    ) {
       factory = "element";
       element = jsxToString(jsxElementName);
     } else {
@@ -80,11 +77,14 @@ export default function ({ template, types: t }) {
   }
 
   /**
-   * @param {import("@babel/types").JSXIdentifier} node
+   * @param {import("@babel/types").JSXIdentifier | import("@babel/types").JSXNamespacedName} node
    * @returns {import("@babel/types").StringLiteral}
    */
   function jsxToString(node) {
-    return t.inherits(t.stringLiteral(node.name), node);
+    let str = t.isJSXNamespacedName(node)
+      ? `${node.namespace.name}:${node.name.name}`
+      : node.name;
+    return t.inherits(t.stringLiteral(str), node);
   }
 
   function transformAttributesList(path) {
