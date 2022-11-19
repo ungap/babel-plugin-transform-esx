@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "test:build": "babel --plugins=./src/index.js ./test/index.js -o ./test/index.compiled.js",
+    "test:build": "babel ./test/index.js -o ./test/index.compiled.js",
     "test": "npm run test:build && node ./test/index.compiled.js"
   },
   "repository": {
@@ -23,6 +23,7 @@
     "@babel/cli": "^7.19.3",
     "@babel/core": "^7.20.2",
     "@types/babel__core": "^7.1.20",
+    "@ungap/esxtoken": "github:ungap/esxtoken",
     "prettier": "^2.7.1"
   },
   "dependencies": {
