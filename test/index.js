@@ -29,7 +29,7 @@ test("transform", () => {
   const transformed = prettier.format(
     babel.transformFileSync(inputPath, {
       configFile: false,
-      plugins: [thisPlugin],
+      plugins: [[thisPlugin, { polyfill: "import" }]],
     }).code
   );
 
@@ -70,7 +70,7 @@ test("'polyfill' option", () => {
   assert.strictEqual(
     withOpts({ polyfill: "import" }),
     `var _templateReference = {};\n` +
-      `import { ESXToken } from "@ungap/esx";\n` +
+      `import ESXToken from "@ungap/esxtoken";\n` +
       `ESXToken.template(_templateReference, ESXToken.element("div", null));`
   );
 
