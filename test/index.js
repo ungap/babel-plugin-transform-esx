@@ -4,8 +4,6 @@ import * as prettier from "prettier";
 import babel from "@babel/core";
 import thisPlugin from "../src/index.js";
 
-import { ESXToken } from "./esx-token.js";
-
 function test(desc, run) {
   try {
     run();
@@ -47,6 +45,37 @@ test("transform", () => {
       throw err;
     }
   }
+});
+
+test("'polyfill' option", () => {
+  const withOpts = (options) =>
+    babel.transformSync("<div />;", {
+      configFile: false,
+      plugins: [[thisPlugin, options]],
+    }).code;
+
+  assert.strictEqual(
+    withOpts({ polyfill: false }),
+    `var _templateReference = {};\n` +
+      `ESXToken.template(_templateReference, ESXToken.element("div", null));`
+  );
+
+  assert.strictEqual(
+    withOpts({ polyfill: "inline" }),
+    `var _templateReference = {};\n` +
+      `globalThis.ESXToken || (globalThis.ESXToken = class ESXToken { static STATIC_TYPE = 1 << 0; static MIXED_TYPE = 1 << 1; static RUNTIME_TYPE = 1 << 2; static TEMPLATE_TYPE = 1 << 3; static ELEMENT_TYPE = 1 << 6; static FRAGMENT_TYPE = 1 << 7; static COMPONENT_TYPE = 1 << 8; static create = (type, value) => ({ __proto__: ESXToken.prototype, type, value }); static property = (type, name, value) => ({ __proto__: ESXToken.prototype, type, name, value }); static template = (id, value) => ({ __proto__: ESXToken.prototype, type: ESXToken.TEMPLATE_TYPE, id, value }); static chevron = (type, value, properties, children) => ({ __proto__: ESXToken.prototype, type, value, properties, children }); static fragment = (...children) => ESXToken.chevron(ESXToken.FRAGMENT_TYPE, null, null, children); static element = (tag, properties, ...children) => ESXToken.chevron(ESXToken.ELEMENT_TYPE, tag, properties, children); static component = (fn, properties, ...children) => ESXToken.chevron(ESXToken.COMPONENT_TYPE, fn, properties, children); });\n` +
+      `ESXToken.template(_templateReference, ESXToken.element("div", null));`
+  );
+
+  assert.strictEqual(
+    withOpts({ polyfill: "import" }),
+    `var _templateReference = {};\n` +
+      `import { ESXToken } from "@ungap/esx";\n` +
+      `ESXToken.template(_templateReference, ESXToken.element("div", null));`
+  );
+
+  // Default is inline
+  assert.strictEqual(withOpts({}), withOpts({ polyfill: "inline" }));
 });
 
 test("type of element attributes", () => {

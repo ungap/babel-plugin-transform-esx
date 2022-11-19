@@ -1,9 +1,16 @@
 import syntaxJSX from "@babel/plugin-syntax-jsx";
+import { getInlinePolyfill, getExternalPolyfill } from "./polyfill.js";
 
 /**
  * @param {import("@babel/core")} babelApi
  */
-export default function ({ template, types: t }) {
+export default function ({ template, types: t }, { polyfill = "inline" }) {
+  if (polyfill !== false && polyfill !== "inline" && polyfill !== "import") {
+    throw new Error(
+      `The .polyfill option must be one of: false, "inline", "import".`
+    );
+  }
+
   /** @type {import("@babel/core").Visitor} */
   const visitor = {
     JSXElement(path) {
@@ -14,15 +21,30 @@ export default function ({ template, types: t }) {
     },
   };
 
+  const polyfillInjected = new WeakSet();
+
+  function ensurePolyfill(programPath) {
+    if (!polyfill || polyfillInjected.has(programPath.node)) return;
+    polyfillInjected.add(programPath.node);
+
+    programPath.unshiftContainer(
+      "body",
+      polyfill === "inline"
+        ? getInlinePolyfill(template)
+        : getExternalPolyfill(template)
+    );
+  }
+
   /**
    * @param {import("@babel/traverse").Scope} scope
    * @param {import("@babel/types").Expression} scope
    */
   function buildTemplate(scope, content) {
     const ref = scope.generateUidIdentifier("templateReference");
-    scope
-      .getProgramParent()
-      .push({ id: t.cloneNode(ref), init: t.objectExpression([]) });
+    const programScope = scope.getProgramParent();
+    programScope.push({ id: t.cloneNode(ref), init: t.objectExpression([]) });
+
+    ensurePolyfill(programScope.path);
 
     return template.expression.ast`ESXToken.template(${ref}, ${content})`;
   }
