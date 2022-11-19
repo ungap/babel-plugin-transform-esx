@@ -1,0 +1,35 @@
+{
+  "name": "@ungap/babel-plugin-transform-esx",
+  "version": "0.1.0",
+  "description": "An ESX transformer as implementation reference.",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "test:build": "babel ./test/index.js -o ./test/index.compiled.js",
+    "test": "npm run test:build && node ./test/index.compiled.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ungap/babel-plugin-transform-esx.git"
+  },
+  "keywords": [],
+  "author": "Nicolò Ribaudo (https://github.com/nicolo-ribaudo)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ungap/babel-plugin-transform-esx/issues"
+  },
+  "homepage": "https://github.com/ungap/babel-plugin-transform-esx#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.19.3",
+    "@babel/core": "^7.20.2",
+    "@types/babel__core": "^7.1.20",
+    "@ungap/esxtoken": "github:ungap/esxtoken",
+    "prettier": "^2.7.1"
+  },
+  "dependencies": {
+    "@babel/plugin-syntax-jsx": "^7.18.6"
+  },
+  "peerDependencies": {
+    "@babel/core": "^7.20.2"
+  }
+}
