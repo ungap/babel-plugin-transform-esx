@@ -121,7 +121,7 @@ export default function ({ template, types: t }) {
     let type, name, value;
     if (t.isJSXSpreadAttribute(node)) {
       type = "RUNTIME_TYPE";
-      name = t.stringLiteral("TODO: spread");
+      name = t.stringLiteral("");
       value = node.argument;
     } else if (t.isJSXExpressionContainer(node.value)) {
       type = "RUNTIME_TYPE";
@@ -161,7 +161,9 @@ export default function ({ template, types: t }) {
       value = node.expression;
     } else if (t.isJSXSpreadChild(node)) {
       // <div>{...foo}</div>
-      throw path.buildCodeFrameError("Spread children are not supported.");
+      throw path.buildCodeFrameError(
+        "Spread children are not supported. Please delete the ... token."
+      );
     } else if (t.isJSXText(node)) {
       type = "STATIC_TYPE";
 

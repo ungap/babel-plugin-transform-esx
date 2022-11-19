@@ -36,7 +36,7 @@ const component = ESXToken.template(
     MyComponent,
     ESXToken.create(ESXToken.RUNTIME_TYPE, [
       ESXToken.property(ESXToken.STATIC_TYPE, "a", "a"),
-      ESXToken.property(ESXToken.RUNTIME_TYPE, "TODO: spread", props),
+      ESXToken.property(ESXToken.RUNTIME_TYPE, "", props),
     ])
   )
 );

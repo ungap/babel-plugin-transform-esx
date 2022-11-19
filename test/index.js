@@ -106,4 +106,16 @@ test("supports xml namespaces", () => {
   assert.strictEqual(elem.value.properties.value[0].name, "xmlns:xlink");
 });
 
+test("spread props are represented as a runtime prop with empty name", () => {
+  const obj = {};
+  const elem = <div {...obj} />;
+
+  assert.strictEqual(elem.value.properties.value[0].name, "");
+  assert.strictEqual(elem.value.properties.value[0].value, obj);
+  assert.strictEqual(
+    elem.value.properties.value[0].type,
+    ESXToken.RUNTIME_TYPE
+  );
+});
+
 test.finish();
