@@ -1,5 +1,5 @@
 import fs from "fs";
-import assert from "assert/strict";
+import assert from "assert";
 import * as prettier from "prettier";
 import babel from "@babel/core";
 import thisPlugin from "../src/index.js";
@@ -41,7 +41,7 @@ test("transform", () => {
   } else {
     const expected = fs.readFileSync(outputPath, "utf8");
     try {
-      assert.equal(transformed, expected);
+      assert.strictEqual(transformed, expected);
     } catch (err) {
       err.message += `\nIf the new output is expected, delete ${outputPath} to regenerate it.`;
       throw err;
@@ -50,39 +50,27 @@ test("transform", () => {
 });
 
 test("type of element attributes", () => {
-  assert.equal(
-    (<div a b="b" />).value.properties.type,
-    ESXToken.STATIC_TYPE,
-    `<div a b="b" /> only has static properties`
-  );
+  const cases = [
+    ["<div a />", <div a />, ESXToken.STATIC_TYPE],
+    ["<div a='a' />", <div a="a" />, ESXToken.STATIC_TYPE],
+    ["<div a={1} />", <div a={1} />, ESXToken.MIXED_TYPE],
+    ["<div a={1} b />", <div a={1} b />, ESXToken.MIXED_TYPE],
+    ["<div a b={1} />", <div a b={1} />, ESXToken.MIXED_TYPE],
+    ["<div a={1} b={2} />", <div a={1} b={2} />, ESXToken.MIXED_TYPE],
+    ["<div {...test} />", <div {...test} />, ESXToken.RUNTIME_TYPE],
+    ["<div a {...test} />", <div a {...test} />, ESXToken.RUNTIME_TYPE],
+    ["<div {...test} a />", <div {...test} a />, ESXToken.RUNTIME_TYPE],
+    ["<div a={1} {...test} />", <div a={1} {...test} />, ESXToken.RUNTIME_TYPE],
+    ["<div {...test} a={1} />", <div {...test} a={1} />, ESXToken.RUNTIME_TYPE],
+  ];
 
-  assert.equal(
-    (<div a={test} />).value.properties.type,
-    ESXToken.RUNTIME_TYPE,
-    `<div a={test} /> only has runtime properties`
-  );
-
-  assert.equal(
-    (<div x a={test} />).value.properties.type,
-    ESXToken.MIXED_TYPE,
-    `<div x a={test} /> has mixed properties`
-  );
-
-  assert.equal(
-    (<div a={test} x />).value.properties.type,
-    ESXToken.MIXED_TYPE,
-    `<div a={test} x /> has mixed properties`
-  );
-
-  assert.equal(
-    (<div x {...test} />).value.properties.type,
-    ESXToken.RUNTIME_TYPE,
-    `<div x {...test} /> is fully runtime because of the spread`
-  );
+  for (const [desc, element, expectedType] of cases) {
+    assert.strictEqual(element.value.properties.type, expectedType, desc);
+  }
 });
 
 test("newlines in children are collapsed", () => {
-  assert.equal(
+  assert.strictEqual(
     (
       <div>
         <span />
@@ -91,7 +79,7 @@ test("newlines in children are collapsed", () => {
     1
   );
 
-  assert.equal(
+  assert.strictEqual(
     (
       <div>
         <span />
@@ -101,7 +89,7 @@ test("newlines in children are collapsed", () => {
     2
   );
 
-  assert.equal(
+  assert.strictEqual(
     (
       <div>
         <span /> <span />

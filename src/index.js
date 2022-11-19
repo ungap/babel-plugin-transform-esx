@@ -93,26 +93,18 @@ export default function ({ template, types: t }) {
 
     if (node.attributes.length === 0) return t.nullLiteral();
 
-    let hasSpread, hasDynamic, hasStatic;
+    let type = "STATIC_TYPE";
     for (const attr of node.attributes) {
       if (t.isJSXSpreadAttribute(attr)) {
-        hasSpread = true;
+        type = "RUNTIME_TYPE";
         break;
       } else if (
         t.isJSXAttribute(attr) &&
         t.isJSXExpressionContainer(attr.value)
       ) {
-        hasDynamic = true;
-      } else {
-        hasStatic = true;
+        type = "MIXED_TYPE";
       }
     }
-    const type =
-      hasSpread || !hasStatic
-        ? "RUNTIME_TYPE"
-        : hasDynamic
-        ? "MIXED_TYPE"
-        : "STATIC_TYPE";
 
     return template.expression.ast`
       ESXToken.create(
