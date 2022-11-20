@@ -74,8 +74,8 @@ test("'polyfill' option", () => {
       `ESXToken.template(_templateReference, ESXToken.element("div", null));`
   );
 
-  // Default is inline
-  assert.strictEqual(withOpts({}), withOpts({ polyfill: "inline" }));
+  // Default is import
+  assert.strictEqual(withOpts({}), withOpts({ polyfill: "import" }));
 });
 
 test("type of element attributes", () => {
