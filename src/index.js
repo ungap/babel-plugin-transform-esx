@@ -4,7 +4,7 @@ import { getInlinePolyfill, getExternalPolyfill } from "./polyfill.js";
 /**
  * @param {import("@babel/core")} babelApi
  */
-export default function ({ template, types: t }, { polyfill = "inline" }) {
+export default function ({ template, types: t }, { polyfill = "import" } = {}) {
   if (polyfill !== false && polyfill !== "inline" && polyfill !== "import") {
     throw new Error(
       `The .polyfill option must be one of: false, "inline", "import".`

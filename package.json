@@ -23,11 +23,11 @@
     "@babel/cli": "^7.19.3",
     "@babel/core": "^7.20.2",
     "@types/babel__core": "^7.1.20",
-    "@ungap/esxtoken": "github:ungap/esxtoken",
     "prettier": "^2.7.1"
   },
   "dependencies": {
-    "@babel/plugin-syntax-jsx": "^7.18.6"
+    "@babel/plugin-syntax-jsx": "^7.18.6",
+    "@ungap/esxtoken": "^0.1.0"
   },
   "peerDependencies": {
     "@babel/core": "^7.20.2"
