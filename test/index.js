@@ -4,6 +4,9 @@ import * as prettier from "prettier";
 import babel from "@babel/core";
 import thisPlugin from "../src/index.js";
 
+// TODO: find a way to use the source instead of manually maintain its parsed outcome
+// import ESXTokenSource from "../src/inline.js";
+
 function test(desc, run) {
   try {
     run();

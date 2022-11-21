@@ -12,7 +12,10 @@
     "type": "git",
     "url": "git+https://github.com/ungap/babel-plugin-transform-esx.git"
   },
-  "keywords": [],
+  "keywords": [
+    "ESX",
+    "polyfill"
+  ],
   "author": "Nicolò Ribaudo (https://github.com/nicolo-ribaudo)",
   "license": "MIT",
   "bugs": {
@@ -27,7 +30,8 @@
   },
   "dependencies": {
     "@babel/plugin-syntax-jsx": "^7.18.6",
-    "@ungap/esxtoken": "^0.1.0"
+    "@ungap/esxtoken": "^0.1.0",
+    "umeta": "^0.2.4"
   },
   "peerDependencies": {
     "@babel/core": "^7.20.2"
