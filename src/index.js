@@ -27,6 +27,7 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
     if (!polyfill || polyfillInjected.has(programPath.node)) return;
     polyfillInjected.add(programPath.node);
 
+    if (programPath.scope.hasBinding("ESXToken")) return;
     programPath.unshiftContainer(
       "body",
       polyfill === "inline"
