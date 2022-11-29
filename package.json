@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
+    "test:all": "rm -rf ./test/transform/output.js && npm run test:build && npm run test",
     "test:build": "babel ./test/index.js -o ./test/index.compiled.js",
     "test": "npm run test:build && node ./test/index.compiled.js"
   },
@@ -24,13 +25,13 @@
   "homepage": "https://github.com/ungap/babel-plugin-transform-esx#readme",
   "devDependencies": {
     "@babel/cli": "^7.19.3",
-    "@babel/core": "^7.20.2",
+    "@babel/core": "^7.20.5",
     "@types/babel__core": "^7.1.20",
-    "prettier": "^2.7.1"
+    "prettier": "^2.8.0"
   },
   "dependencies": {
     "@babel/plugin-syntax-jsx": "^7.18.6",
-    "@ungap/esxtoken": "^0.1.2",
+    "@ungap/esxtoken": "^0.2.2",
     "umeta": "^0.2.4"
   },
   "peerDependencies": {

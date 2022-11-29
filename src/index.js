@@ -14,14 +14,31 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
   /** @type {import("@babel/core").Visitor} */
   const visitor = {
     JSXElement(path) {
-      path.replaceWith(buildTemplate(path.scope, transformElement(path)));
+      path.replaceWith(transformElement(path, buildReference(path)));
     },
     JSXFragment(path) {
-      path.replaceWith(buildTemplate(path.scope, transformFragment(path)));
+      path.replaceWith(transformFragment(path, buildReference(path)));
     },
   };
 
   const polyfillInjected = new WeakSet();
+
+  const getChildren = path => path.get("children").map(transformChild).filter(Boolean);
+
+  const getDirectMember = nmsp => t.memberExpression.apply(
+    t, nmsp.split(".").map(x => t.identifier(x))
+  );
+
+  const invoke = (nmsp, ...args) => t.callExpression(getDirectMember(nmsp), args);
+
+  function buildReference({scope}) {
+    const ref = scope.generateUidIdentifier("templateReference");
+    const programScope = scope.getProgramParent();
+    programScope.push({ id: t.cloneNode(ref), init: t.objectExpression([]) });
+
+    ensurePolyfill(programScope.path);
+    return ref;
+  }
 
   function ensurePolyfill(programPath) {
     if (!polyfill || polyfillInjected.has(programPath.node)) return;
@@ -36,53 +53,35 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
     );
   }
 
-  /**
-   * @param {import("@babel/traverse").Scope} scope
-   * @param {import("@babel/types").Expression} scope
-   */
-  function buildTemplate(scope, content) {
-    const ref = scope.generateUidIdentifier("templateReference");
-    const programScope = scope.getProgramParent();
-    programScope.push({ id: t.cloneNode(ref), init: t.objectExpression([]) });
-
-    ensurePolyfill(programScope.path);
-
-    return template.expression.ast`ESXToken.template(${ref}, ${content})`;
-  }
-
-  function transformElement(path) {
+  function transformElement(path, ref) {
     /** @type {import("@babel/types").JSXElement} */
     const node = path.node;
     const jsxElementName = node.openingElement.name;
 
-    let factory;
+    let factory = "ESXToken.";
     let element;
     if (
       t.isJSXNamespacedName(jsxElementName) ||
       (t.isJSXIdentifier(jsxElementName) && /^[a-z]/.test(jsxElementName.name))
     ) {
-      factory = "element";
+      factory += "e";
       element = jsxToString(jsxElementName);
     } else {
-      factory = "component";
+      factory += "c";
       element = jsxToJS(jsxElementName);
     }
 
-    return t.callExpression(
-      t.memberExpression(t.identifier("ESXToken"), t.identifier(factory)),
-      [
-        element,
-        transformAttributesList(path.get("openingElement")),
-        ...path.get("children").map(transformChild).filter(Boolean),
-      ]
-    );
+    const children = getChildren(path);
+    const attributes = transformAttributesList(path.get("openingElement"));
+
+    return children.length ?
+      invoke(factory, ref, element, attributes, t.arrayExpression(children)) :
+      invoke(factory, ref, element, attributes);
   }
 
-  function transformFragment(path) {
-    return t.callExpression(
-      t.memberExpression(t.identifier("ESXToken"), t.identifier("fragment")),
-      path.get("children").map(transformChild).filter(Boolean)
-    );
+  function transformFragment(path, ref) {
+    const children = getChildren(path);
+    return invoke("ESXToken.f", ref, t.arrayExpression(children));
   }
 
   /**
@@ -114,40 +113,25 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
     /** @type {import("@babel/types").JSXOpeningElement} */
     const node = path.node;
 
-    if (node.attributes.length === 0) return t.nullLiteral();
-
-    let type = "STATIC_TYPE";
-    for (const attr of node.attributes) {
-      if (t.isJSXSpreadAttribute(attr)) {
-        type = "RUNTIME_TYPE";
-        break;
-      } else if (
-        t.isJSXAttribute(attr) &&
-        t.isJSXExpressionContainer(attr.value)
-      ) {
-        type = "MIXED_TYPE";
-      }
-    }
-
-    return template.expression.ast`
-      ESXToken.create(
-        ESXToken.${t.identifier(type)},
-        ${t.arrayExpression(path.get("attributes").map(transformAttribute))}
-      )
-    `;
+    return node.attributes.length === 0 ?
+      getDirectMember("ESXToken._") :
+      t.arrayExpression(path.get("attributes").map(transformAttribute));
   }
 
   function transformAttribute(path) {
     /** @type {import("@babel/types").JSXAttribute | import("@babel/types").JSXSpreadAttribute} */
     const node = path.node;
 
-    let type, name, value;
     if (t.isJSXSpreadAttribute(node)) {
-      type = "RUNTIME_TYPE";
-      name = t.stringLiteral("");
-      value = node.argument;
-    } else if (t.isJSXExpressionContainer(node.value)) {
-      type = "RUNTIME_TYPE";
+      return t.inherits(
+        invoke("ESXToken.i", node.argument),
+        node
+      );
+    }
+
+    let dynamic = false, name, value;
+    if (t.isJSXExpressionContainer(node.value)) {
+      dynamic = true;
       name = jsxToString(node.name);
       value = node.value.expression;
     } else if (t.isJSXElement(node.value) || t.isJSXFragment(node.value)) {
@@ -157,19 +141,15 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
           "JSX elements are not supported as static attributes. Please wrap it in { }."
         );
     } else if (node.value) {
-      type = "STATIC_TYPE";
       name = jsxToString(node.name);
       value = node.value;
     } else {
-      type = "STATIC_TYPE";
       name = jsxToString(node.name);
       value = t.booleanLiteral(true);
     }
 
     return t.inherits(
-      template.expression.ast`
-        ESXToken.property(ESXToken.${t.identifier(type)}, ${name}, ${value})
-      `,
+      invoke("ESXToken.a", t.booleanLiteral(dynamic), name, value),
       node
     );
   }
@@ -178,35 +158,26 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
     /** @type {import("@babel/types").JSXElement["children"][number]} */
     const node = path.node;
 
-    let type, value;
-    if (t.isJSXExpressionContainer(node)) {
-      type = "RUNTIME_TYPE";
-      value = node.expression;
-    } else if (t.isJSXSpreadChild(node)) {
+    if (t.isJSXExpressionContainer(node))
+      return invoke("ESXToken.i", node.expression);
+
+    if (t.isJSXSpreadChild(node)) {
       // <div>{...foo}</div>
       throw path.buildCodeFrameError(
         "Spread children are not supported. Please delete the ... token."
       );
     } else if (t.isJSXText(node)) {
-      type = "STATIC_TYPE";
-
       // Empty text to insert a new line in the code, skip it
       if (node.value.trim() === "" && /[\r\n]/.test(node.value)) {
         return null;
       }
 
-      value = t.stringLiteral(node.value);
+      return invoke("ESXToken.s", t.stringLiteral(node.value));
     } else if (t.isJSXElement(node)) {
-      type = "STATIC_TYPE";
-      value = transformElement(path);
+      return transformElement(path, t.nullLiteral());
     } else if (t.isJSXFragment(node)) {
-      type = "STATIC_TYPE";
-      value = transformFragment(path);
+      return transformFragment(path, t.nullLiteral());
     }
-
-    return template.expression.ast`
-      ESXToken.create(ESXToken.${t.identifier(type)}, ${value})
-    `;
   }
 
   return { visitor, inherits: syntaxJSX.default };
