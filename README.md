@@ -1,6 +1,6 @@
 # babel-plugin-transform-esx
 
-<sup><sub>**THIS PROJECT IS BROKEN AND UNDER HEAVY REFACTORING - FEEL FREE TO PLAY WITH IT BUT DON'T USE IT IN PRODUCTION**</sub></sup>
+<sup><sub>**EXPERIMENTAL** ⚠</sub></sup> <sup><sub>**THIS PROJECT IS BROKEN AND UNDER HEAVY REFACTORING - FEEL FREE TO PLAY WITH IT BUT DON'T USE IT IN PRODUCTION**</sub></sup>
 
 ## Highly Experimental
 
