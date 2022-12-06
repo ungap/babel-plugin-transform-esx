@@ -1,5 +1,7 @@
 # babel-plugin-transform-esx
 
+<sup><sub>**THIS PROJECT IS BROKEN AND UNDER HEAVY REFACTORING - FEEL FREE TO PLAY WITH IT BUT DON'T USE IT IN PRODUCTION**</sub></sup>
+
 ## Highly Experimental
 
 If you are using this already, consider changes soon due [the discussion around current ESX proposal](https://es.discourse.group/t/proposal-esx-as-core-js-feature/1511/43).
