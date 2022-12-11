@@ -1,3 +1,4 @@
+import ESXToken from "@ungap/esxtoken";
 import syntaxJSX from "@babel/plugin-syntax-jsx";
 import { getInlinePolyfill, getExternalPolyfill } from "./polyfill.js";
 
@@ -29,7 +30,10 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
     t, nmsp.split(".").map(x => t.identifier(x))
   );
 
-  const invoke = (nmsp, ...args) => t.callExpression(getDirectMember(nmsp), args);
+  const interpolation = value => t.objectExpression([
+    t.objectProperty(t.identifier("type"), t.numericLiteral(ESXToken.INTERPOLATION)),
+    t.objectProperty(t.identifier("value"), value)
+  ]);
 
   function buildReference({scope}) {
     const ref = scope.generateUidIdentifier("templateReference");
@@ -58,30 +62,46 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
     const node = path.node;
     const jsxElementName = node.openingElement.name;
 
-    let factory = "ESXToken.";
+    let type = 0;
     let element;
     if (
       t.isJSXNamespacedName(jsxElementName) ||
       (t.isJSXIdentifier(jsxElementName) && /^[a-z]/.test(jsxElementName.name))
     ) {
-      factory += "e";
+      type = ESXToken.ELEMENT;
       element = jsxToString(jsxElementName);
     } else {
-      factory += "c";
+      type = ESXToken.COMPONENT;
       element = jsxToJS(jsxElementName);
     }
 
-    const children = getChildren(path);
+    let children = getChildren(path);
     const attributes = transformAttributesList(path.get("openingElement"));
 
-    return children.length ?
-      invoke(factory, ref, element, attributes, t.arrayExpression(children)) :
-      invoke(factory, ref, element, attributes);
+    return t.newExpression(
+      t.identifier("ESXToken"),
+      [
+        ref,
+        t.numericLiteral(type),
+        attributes,
+        children.length ? t.arrayExpression(children) : getDirectMember("ESXToken._"),
+        type === ESXToken.ELEMENT ? element : t.stringLiteral(jsxElementName.name),
+        element
+      ]
+    );
   }
 
   function transformFragment(path, ref) {
     const children = getChildren(path);
-    return invoke("ESXToken.f", ref, t.arrayExpression(children));
+    return t.newExpression(
+      t.identifier("ESXToken"),
+      [
+        ref,
+        t.numericLiteral(ESXToken.FRAGMENT),
+        getDirectMember("ESXToken._"),
+        children.length ? t.arrayExpression(children) : getDirectMember("ESXToken._")
+      ]
+    );
   }
 
   /**
@@ -123,10 +143,7 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
     const node = path.node;
 
     if (t.isJSXSpreadAttribute(node)) {
-      return t.inherits(
-        invoke("ESXToken.i", node.argument),
-        node
-      );
+      return t.inherits(interpolation(node.argument), node);
     }
 
     let dynamic = false, name, value;
@@ -149,7 +166,12 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
     }
 
     return t.inherits(
-      invoke("ESXToken.a", t.booleanLiteral(dynamic), name, value),
+      t.objectExpression([
+        t.objectProperty(t.identifier("type"), t.numericLiteral(ESXToken.ATTRIBUTE)),
+        t.objectProperty(t.identifier("dynamic"), t.booleanLiteral(dynamic)),
+        t.objectProperty(t.identifier("name"), name),
+        t.objectProperty(t.identifier("value"), value)
+      ]),
       node
     );
   }
@@ -159,7 +181,7 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
     const node = path.node;
 
     if (t.isJSXExpressionContainer(node))
-      return invoke("ESXToken.i", node.expression);
+      return interpolation(node.expression);
 
     if (t.isJSXSpreadChild(node)) {
       // <div>{...foo}</div>
@@ -172,7 +194,10 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
         return null;
       }
 
-      return invoke("ESXToken.s", t.stringLiteral(node.value));
+      return t.objectExpression([
+        t.objectProperty(t.identifier("type"), t.numericLiteral(ESXToken.STATIC)),
+        t.objectProperty(t.identifier("value"), t.stringLiteral(node.value))
+      ]);
     } else if (t.isJSXElement(node)) {
       return transformElement(path, t.nullLiteral());
     } else if (t.isJSXFragment(node)) {
