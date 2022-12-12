@@ -14,69 +14,22 @@ const div = new ESXToken(
 const div2 = new ESXToken(
   _templateReference2,
   3,
-  [
-    {
-      type: 1,
-      dynamic: false,
-      name: "a",
-      value: "a",
-    },
-    {
-      type: 1,
-      dynamic: true,
-      name: "b",
-      value: "b",
-    },
-  ],
-  [
-    new ESXToken(
-      null,
-      3,
-      ESXToken._,
-      [
-        {
-          type: 6,
-          value: "c",
-        },
-      ],
-      "p",
-      "p"
-    ),
-  ],
+  [ESXToken.a(false, "a", "a"), ESXToken.a(true, "b", "b")],
+  [new ESXToken(null, 3, ESXToken._, [ESXToken.b(6, "c")], "p", "p")],
   "div",
   "div"
 );
 function MyComponent(...args) {
   return new ESXToken(_templateReference3, 4, ESXToken._, [
-    {
-      type: 5,
-      value: "A",
-    },
-    {
-      type: 6,
-      value: ",",
-    },
-    {
-      type: 5,
-      value: "B",
-    },
+    ESXToken.b(5, "A"),
+    ESXToken.b(6, ","),
+    ESXToken.b(5, "B"),
   ]);
 }
 const component = new ESXToken(
   _templateReference4,
   2,
-  [
-    {
-      type: 1,
-      dynamic: false,
-      name: "a",
-      value: "a",
-    },
-    {
-      type: 5,
-      value: props,
-    },
-  ],
+  [ESXToken.a(false, "a", "a"), ESXToken.b(5, props)],
   ESXToken._,
   "MyComponent",
   MyComponent

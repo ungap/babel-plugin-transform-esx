@@ -30,10 +30,9 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
     t, nmsp.split(".").map(x => t.identifier(x))
   );
 
-  const interpolation = value => t.objectExpression([
-    t.objectProperty(t.identifier("type"), t.numericLiteral(ESXToken.INTERPOLATION)),
-    t.objectProperty(t.identifier("value"), value)
-  ]);
+  const interpolation = value => invoke("ESXToken.b", t.numericLiteral(ESXToken.INTERPOLATION), value);
+
+  const invoke = (nmsp, ...args) => t.callExpression(getDirectMember(nmsp), args);
 
   function buildReference({scope}) {
     const ref = scope.generateUidIdentifier("templateReference");
@@ -166,12 +165,7 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
     }
 
     return t.inherits(
-      t.objectExpression([
-        t.objectProperty(t.identifier("type"), t.numericLiteral(ESXToken.ATTRIBUTE)),
-        t.objectProperty(t.identifier("dynamic"), t.booleanLiteral(dynamic)),
-        t.objectProperty(t.identifier("name"), name),
-        t.objectProperty(t.identifier("value"), value)
-      ]),
+      invoke("ESXToken.a", t.booleanLiteral(dynamic), name, value),
       node
     );
   }
@@ -193,11 +187,7 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
       if (node.value.trim() === "" && /[\r\n]/.test(node.value)) {
         return null;
       }
-
-      return t.objectExpression([
-        t.objectProperty(t.identifier("type"), t.numericLiteral(ESXToken.STATIC)),
-        t.objectProperty(t.identifier("value"), t.stringLiteral(node.value))
-      ]);
+      return invoke("ESXToken.b", t.numericLiteral(ESXToken.STATIC), t.stringLiteral(node.value));
     } else if (t.isJSXElement(node)) {
       return transformElement(path, t.nullLiteral());
     } else if (t.isJSXFragment(node)) {

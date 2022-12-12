@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@babel/plugin-syntax-jsx": "^7.18.6",
-    "@ungap/esxtoken": "^0.4.1",
+    "@ungap/esxtoken": "^0.4.2",
     "umeta": "^0.2.4"
   },
   "peerDependencies": {
