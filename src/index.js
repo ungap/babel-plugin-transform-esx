@@ -34,6 +34,10 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
 
   const invoke = (nmsp, ...args) => t.callExpression(getDirectMember(nmsp), args);
 
+  const jsx2name = node =>t.isJSXMemberExpression(node) ?
+    [jsx2name(node.object), jsx2name(node.property)].join(".") :
+    node.name;
+
   function buildReference({scope}) {
     const ref = scope.generateUidIdentifier("templateReference");
     const programScope = scope.getProgramParent();
@@ -84,7 +88,7 @@ export default function ({ template, types: t }, { polyfill = "import" } = {}) {
         t.numericLiteral(type),
         attributes,
         children.length ? t.arrayExpression(children) : getDirectMember("ESXToken._"),
-        type === ESXToken.ELEMENT ? element : t.stringLiteral(jsxElementName.name),
+        type === ESXToken.ELEMENT ? element : t.stringLiteral(jsx2name(jsxElementName)),
         element
       ]
     );
