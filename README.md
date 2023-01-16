@@ -2,7 +2,7 @@
 
 <sup><sub>**EXPERIMENTAL** ⚠</sub></sup> <sup><sub>**FEEL FREE TO PLAY WITH IT BUT DON'T USE IT IN PRODUCTION**</sub></sup>
 
-## Highly Experimental
+## Experimental
 
 If you are using this already, consider changes soon due [the discussion around current ESX proposal](https://es.discourse.group/t/proposal-esx-as-core-js-feature/1511/43).
 
